@@ -864,7 +864,7 @@ function renderMarkers() {
 
     let html = `<div class="popup-wrap">`;
     if (m.photoFileId) {
-      html += `<img class="popup-img" src="${photoUrl(m.photoFileId)}" loading="lazy">`;
+      html += `<img class="popup-img" src="${photoUrl(m.photoFileId)}" loading="lazy" onerror="this.style.display='none'">`;
     }
     html += `<div class="popup-body">
                <div class="popup-date">${m.date || ''}</div>
