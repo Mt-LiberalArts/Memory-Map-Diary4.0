@@ -657,6 +657,12 @@ function closeSheet() {
   document.getElementById('sheet').classList.remove('open');
   if (tempMarker) { map.removeLayer(tempMarker); tempMarker = null; }
   tempPhotoBlob = null;
+  // 写真プレビューをリセット
+  const preview = document.getElementById('photoPreview');
+  preview.src = '';
+  preview.style.display = 'none';
+  document.getElementById('photoPicker').style.display = '';
+  document.getElementById('photoInput').value = '';
 }
 
 /* ═══════════════════════════════════════════
