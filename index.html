@@ -484,7 +484,7 @@ window.addEventListener('online', () => {
    ─ 現在地を取得して中心にセット
    ─ タップ時に追加モードならシートを開く
 ═══════════════════════════════════════════ */
-const map = L.map('map', { zoomControl: false }).setView([35.6895, 139.6917], 15);
+const map = L.map('map', { zoomControl: false }).setView([40.7128, -74.0060], 15); // NYC default
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap'
 }).addTo(map);
