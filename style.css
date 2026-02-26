@@ -1,0 +1,339 @@
+/* ═══════════════════════════════════════════
+   おもいでマップ — スタイルシート
+   ─ デザイントークン（色・角丸）
+   ─ レイアウト（地図・ヘッダー・ナビ・シート）
+   ─ コンポーネント（ボタン・フォーム・ポップアップ）
+   ─ ユーティリティ（ローディング・ヒント・Leaflet上書き）
+═══════════════════════════════════════════ */
+
+/* ── デザイントークン ── */
+:root {
+  --bg:      #faf7f2;
+  --ink:     #1a1a2e;
+  --warm:    #e8ddd0;
+  --accent:  #c9614a;
+  --blue:    #4a8fa8;
+  --green:   #5a8a6a;
+  --shadow:  rgba(26, 26, 46, 0.12);
+  --radius:  20px;
+}
+
+/* ── リセット ── */
+* {
+  margin: 0; padding: 0; box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  font-family: 'Zen Maru Gothic', sans-serif;
+}
+body {
+  height: 100dvh;
+  background: var(--ink);
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* ── 地図 ── */
+#map {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+/* ── ヘッダー（ロゴ＋ログインボタン） ── */
+.header {
+  position: absolute;
+  top: 10px; left: 10px; right: 10px;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.logo-card {
+  background: var(--bg);
+  padding: 10px 18px;
+  border-radius: var(--radius);
+  box-shadow: 0 2px 12px var(--shadow);
+  pointer-events: auto;
+}
+.logo-card h1 {
+  font-size: 17px;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+}
+.logo-card p {
+  font-size: 10px;
+  color: #aaa;
+  margin-top: 2px;
+}
+
+.auth-card {
+  background: var(--bg);
+  padding: 10px 14px;
+  border-radius: var(--radius);
+  box-shadow: 0 2px 12px var(--shadow);
+  text-align: right;
+  pointer-events: auto;
+}
+.login-status {
+  font-size: 11px;
+  font-weight: 700;
+  color: #aaa;
+  margin-bottom: 6px;
+}
+.login-status.logged-in { color: var(--green); }
+
+/* ── ボタン共通 ── */
+.btn {
+  border: none;
+  border-radius: 30px;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn:active { transform: scale(0.96); }
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+  padding: 9px 18px;
+  font-size: 13px;
+  box-shadow: 0 3px 12px rgba(201, 97, 74, 0.35);
+}
+.btn-primary:disabled { background: #ccc; box-shadow: none; cursor: default; }
+
+.btn-ghost {
+  background: none;
+  border: 1px solid #ccc;
+  color: #888;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+/* ── モードヒント（画面下部のトースト） ── */
+.mode-hint {
+  position: absolute;
+  bottom: 100px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 99;
+  background: rgba(26, 26, 46, 0.82);
+  color: var(--bg);
+  font-size: 12px;
+  padding: 8px 20px;
+  border-radius: 30px;
+  white-space: nowrap;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 16px var(--shadow);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.mode-hint.visible { opacity: 1; }
+
+/* ── ボトムナビ（追加 / 閲覧 / 削除） ── */
+.bottom-nav {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  z-index: 100;
+  padding: 0 16px env(safe-area-inset-bottom, 16px);
+  pointer-events: none;
+}
+.nav-inner {
+  background: var(--bg);
+  border-radius: 24px 24px 0 0;
+  padding: 12px 8px 4px;
+  display: flex;
+  justify-content: space-around;
+  box-shadow: 0 -4px 30px var(--shadow);
+  pointer-events: auto;
+}
+.nav-btn {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  background: none;
+  border: none;
+  padding: 8px 4px;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-family: 'Zen Maru Gothic', sans-serif;
+}
+.nav-btn .icon  { font-size: 22px; line-height: 1; }
+.nav-btn .label { font-size: 10px; color: #aaa; font-weight: 700; transition: color 0.2s; }
+.nav-btn.active            { background: var(--warm); }
+.nav-btn.active .label     { color: var(--ink); }
+
+/* ── シート（思い出入力フォーム） ── */
+.sheet-overlay {
+  position: absolute; inset: 0;
+  background: rgba(26, 26, 46, 0.45);
+  z-index: 200;
+  display: none;
+  backdrop-filter: blur(2px);
+}
+.sheet-overlay.open { display: block; }
+
+.sheet {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: var(--bg);
+  border-radius: 28px 28px 0 0;
+  padding: 0 20px calc(env(safe-area-inset-bottom, 20px) + 20px);
+  z-index: 201;
+  transform: translateY(100%);
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  max-height: 90dvh;
+  overflow-y: auto;
+}
+.sheet.open { transform: translateY(0); }
+
+.sheet-handle {
+  width: 40px; height: 4px;
+  background: #ddd; border-radius: 2px;
+  margin: 12px auto 20px;
+}
+.sheet-title {
+  font-size: 17px; font-weight: 700; color: var(--ink);
+  margin-bottom: 20px;
+}
+
+/* ── フォームパーツ ── */
+.form-group { margin-bottom: 16px; }
+.form-label {
+  display: block;
+  font-size: 11px; font-weight: 700;
+  color: #aaa; margin-bottom: 6px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.form-input {
+  width: 100%;
+  padding: 14px 16px;
+  background: white;
+  border: 1.5px solid var(--warm);
+  border-radius: 14px;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 16px; color: var(--ink);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--blue); }
+textarea.form-input { resize: none; height: 100px; line-height: 1.6; }
+
+/* 写真ピッカー */
+.photo-picker {
+  width: 100%; height: 110px;
+  background: white;
+  border: 2px dashed var(--warm);
+  border-radius: 14px;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 6px; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.photo-picker:active          { background: var(--warm); }
+.photo-picker.has-photo       { border-style: solid; border-color: var(--green); background: #f0f7f2; }
+.photo-picker .picker-icon    { font-size: 28px; }
+.photo-picker .picker-text    { font-size: 12px; color: #aaa; font-weight: 700; }
+.photo-picker.has-photo .picker-text { color: var(--green); }
+
+.photo-preview {
+  width: 100%; height: 160px;
+  object-fit: cover; border-radius: 14px;
+  display: none;
+}
+
+/* 保存・キャンセルボタン */
+.btn-save {
+  width: 100%; padding: 16px;
+  background: var(--accent); color: white;
+  border: none; border-radius: var(--radius);
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 16px; font-weight: 700;
+  cursor: pointer; margin-top: 8px;
+  box-shadow: 0 4px 16px rgba(201, 97, 74, 0.35);
+  transition: transform 0.15s;
+}
+.btn-save:active { transform: scale(0.98); }
+
+.btn-cancel {
+  width: 100%; padding: 14px;
+  background: none; color: #aaa; border: none;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 15px; cursor: pointer; margin-top: 4px;
+}
+
+/* ── ポップアップ（思い出表示） ── */
+.leaflet-popup-content-wrapper {
+  border-radius: var(--radius) !important;
+  box-shadow: 0 8px 32px var(--shadow) !important;
+  padding: 0 !important; overflow: hidden;
+  background: var(--bg) !important;
+}
+.leaflet-popup-content { margin: 0 !important; width: auto !important; }
+.leaflet-popup-tip     { background: var(--bg) !important; }
+
+.popup-wrap    { min-width: 200px; max-width: 260px; }
+.popup-img     { width: 100%; height: 140px; object-fit: cover; display: block; }
+.popup-body    { padding: 14px 16px; }
+.popup-comment { font-size: 14px; color: var(--ink); line-height: 1.6; margin-bottom: 4px; }
+.popup-date    { font-size: 11px; color: #aaa; font-weight: 700; }
+.popup-delete  {
+  display: block;
+  width: calc(100% - 32px); margin: 0 16px 14px;
+  padding: 10px;
+  background: #fff0ee; color: var(--accent);
+  border: 1.5px solid #ffd5cc; border-radius: 12px;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 13px; font-weight: 700;
+  cursor: pointer; text-align: center;
+}
+
+/* ── ローディングオーバーレイ ── */
+.loading-overlay {
+  position: absolute; inset: 0;
+  background: rgba(250, 247, 242, 0.85);
+  z-index: 999;
+  display: none;
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 16px; backdrop-filter: blur(4px);
+}
+.loading-overlay.visible { display: flex; }
+.spinner {
+  width: 44px; height: 44px;
+  border: 3px solid var(--warm);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 14px; font-weight: 700; color: var(--ink); }
+
+/* ── トースト通知 ── */
+.toast {
+  position: absolute;
+  top: 80px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 998;
+  padding: 10px 22px;
+  border-radius: 30px;
+  font-size: 13px; font-weight: 700;
+  white-space: nowrap;
+  box-shadow: 0 4px 16px var(--shadow);
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+.toast.visible  { opacity: 1; }
+.toast.error    { background: var(--accent); color: white; }
+.toast.info     { background: var(--ink); color: var(--bg); }
+.toast.relogin  { background: #fff0ee; color: var(--accent);
+                  border: 1.5px solid #ffd5cc; pointer-events: auto; cursor: pointer; }
+
+/* ── Leaflet上書き ── */
+.leaflet-control-zoom   { display: none !important; }
+.leaflet-marker-icon    { filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25)); }
