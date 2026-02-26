@@ -184,7 +184,7 @@ function updateLoginUI(loggedIn) {
 const hints = {
   add:    '地図をタップして思い出を追加',
   view:   'マーカーをタップして表示',
-  delete: 'マーカーをタップして削除'
+  delete: 'マーカーをタップして編集・削除'
 };
 
 function switchMode(mode) {
@@ -498,7 +498,20 @@ function renderMarkers() {
                <div class="popup-date">${m.date || ''}</div>
              </div>`;
     if (currentMode === 'delete') {
-      html += `<button class="popup-delete" onclick="deleteMemory('${m.id}')">🗑 この思い出を削除</button>`;
+      html += `
+        <div class="popup-edit-form">
+          <div>
+            <div class="popup-edit-label">コメント</div>
+            <textarea id="edit-comment-${m.id}">${m.comment || ''}</textarea>
+          </div>
+          <div>
+            <div class="popup-edit-label">日付</div>
+            <input type="date" id="edit-date-${m.id}" value="${m.date || ''}" />
+          </div>
+        </div>
+        <button class="popup-save" onclick="editMemory('${m.id}')">変更を保存</button>
+        <button class="popup-delete" onclick="deleteMemory('${m.id}')">🗑 この思い出を削除</button>
+      `;
     }
     html += `</div>`;
 
@@ -538,7 +551,34 @@ window.deleteMemory = async (id) => {
 };
 
 /* ═══════════════════════════════════════════
-   § 起動時ヒント
+   § 思い出の編集
+   ─ 1. ポップアップ内のフォームから値を取得
+   ─ 2. memoriesを更新
+   ─ 3. DriveのJSONファイルを保存
+   ─ 4. マーカーを再描画
+═══════════════════════════════════════════ */
+window.editMemory = async (id) => {
+  const comment = document.getElementById(`edit-comment-${id}`)?.value ?? '';
+  const date    = document.getElementById(`edit-date-${id}`)?.value ?? '';
+
+  setLoading(true, '保存中...');
+  try {
+    const idx = memories.findIndex(m => m.id === id);
+    if (idx === -1) return;
+    memories[idx].comment = comment;
+    memories[idx].date    = date;
+    await saveDataFile();
+    renderMarkers();
+    showToast('変更を保存しました ✓', 'info', 2000);
+  } catch (e) {
+    console.error(e);
+    handleDriveError(e);
+  } finally {
+    setLoading(false);
+  }
+};
+
+/* ═══════════════════════════════════════════
    ─ 0.8秒後に「追加モード」のヒントを一瞬表示
 ═══════════════════════════════════════════ */
 setTimeout(() => {
