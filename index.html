@@ -290,8 +290,8 @@
     .popup-wrap    { min-width: 200px; max-width: 260px; }
     .popup-img     { width: 100%; height: 140px; object-fit: cover; display: block; }
     .popup-body    { padding: 14px 16px; }
-    .popup-date    { font-size: 11px; color: #aaa; font-weight: 700; margin-bottom: 4px; }
-    .popup-comment { font-size: 14px; color: var(--ink); line-height: 1.6; }
+    .popup-comment { font-size: 14px; color: var(--ink); line-height: 1.6; margin-bottom: 4px; }
+    .popup-date    { font-size: 11px; color: #aaa; font-weight: 700; }
     .popup-delete  {
       display: block;
       width: calc(100% - 32px); margin: 0 16px 14px;
@@ -415,23 +415,23 @@
   <div class="sheet-title">📍 思い出を記録</div>
 
   <div class="form-group">
-    <label class="form-label">日付</label>
-    <input type="date" class="form-input" id="dateInput" />
-  </div>
-
-  <div class="form-group">
     <label class="form-label">写真</label>
     <div class="photo-picker" id="photoPicker" onclick="document.getElementById('photoInput').click()">
       <span class="picker-icon">📷</span>
       <span class="picker-text" id="pickerText">タップして選択</span>
     </div>
-    <img class="photo-preview" id="photoPreview" />
+    <img class="photo-preview" id="photoPreview" onclick="document.getElementById('photoInput').click()" style="cursor:pointer" />
     <input type="file" id="photoInput" accept="image/*" style="display:none" />
   </div>
 
   <div class="form-group">
     <label class="form-label">コメント（144字）</label>
     <textarea class="form-input" id="commentInput" maxlength="144" placeholder="どんな思い出ですか？"></textarea>
+  </div>
+
+  <div class="form-group">
+    <label class="form-label">日付</label>
+    <input type="date" class="form-input" id="dateInput" />
   </div>
 
   <button class="btn-save" onclick="saveMarker()">この場所に保存する</button>
@@ -670,11 +670,63 @@ function closeSheet() {
    ─ 選択した画像を最大900pxにリサイズして
      JPEG（品質75%）に変換・プレビュー表示
 ═══════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   § JS ─ 写真処理
+   ─ 選択した画像を最大900pxにリサイズして
+     JPEG（品質75%）に変換・プレビュー表示
+   ─ EXIFから撮影日を取得して日付欄に自動入力
+     （取得できなければ今日の日付を維持）
+═══════════════════════════════════════════ */
+
+// EXIFの撮影日を取得する（DataView使用）
+function getExifDate(buffer) {
+  try {
+    const view = new DataView(buffer);
+    // JPEGのSOIマーカー確認
+    if (view.getUint16(0) !== 0xFFD8) return null;
+    let offset = 2;
+    while (offset < view.byteLength) {
+      const marker = view.getUint16(offset);
+      if (marker === 0xFFE1) { // APP1 (EXIF)
+        const exifOffset = offset + 10; // 'Exif\0\0' をスキップ
+        const little = view.getUint16(exifOffset) === 0x4949;
+        const ifdOffset = view.getUint32(exifOffset + 4, little);
+        const ifdStart = exifOffset + ifdOffset;
+        const entries = view.getUint16(ifdStart, little);
+        for (let i = 0; i < entries; i++) {
+          const tag = view.getUint16(ifdStart + 2 + i * 12, little);
+          if (tag === 0x9003 || tag === 0x0132) { // DateTimeOriginal or DateTime
+            const valOffset = ifdStart + 2 + i * 12 + 8;
+            const strOffset = exifOffset + view.getUint32(valOffset, little);
+            let str = '';
+            for (let j = 0; j < 19; j++) {
+              str += String.fromCharCode(view.getUint8(strOffset + j));
+            }
+            // Format: "YYYY:MM:DD HH:MM:SS" → "YYYY-MM-DD"
+            const match = str.match(/^(\d{4}):(\d{2}):(\d{2})/);
+            if (match) return `${match[1]}-${match[2]}-${match[3]}`;
+          }
+        }
+        return null;
+      }
+      const segLen = view.getUint16(offset + 2);
+      offset += 2 + segLen;
+    }
+  } catch (e) {}
+  return null;
+}
+
 document.getElementById('photoInput').addEventListener('change', e => {
   const file = e.target.files[0];
   if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
+    // EXIFから日付取得を試みる
+    const exifDate = getExifDate(ev.target.result);
+    if (exifDate) {
+      document.getElementById('dateInput').value = exifDate;
+    }
+    // 画像リサイズ
     const img = new Image();
     img.onload = () => {
       const canvas = document.createElement('canvas');
@@ -691,11 +743,16 @@ document.getElementById('photoInput').addEventListener('change', e => {
         preview.src = url;
         preview.style.display = 'block';
         document.getElementById('photoPicker').style.display = 'none';
+        // ピッカーにも選択済みスタイル
+        document.getElementById('photoPicker').className = 'photo-picker has-photo';
+        document.getElementById('pickerText').textContent = '写真を変更';
       }, 'image/jpeg', 0.75);
     };
-    img.src = ev.target.result;
+    // ArrayBufferからURLを作ってimgに渡す
+    const blob = new Blob([ev.target.result]);
+    img.src = URL.createObjectURL(blob);
   };
-  reader.readAsDataURL(file);
+  reader.readAsArrayBuffer(file);
 });
 
 /* ═══════════════════════════════════════════
@@ -873,8 +930,8 @@ function renderMarkers() {
       html += `<img class="popup-img" src="${photoUrl(m.photoFileId)}" loading="lazy" onerror="this.style.display='none'">`;
     }
     html += `<div class="popup-body">
-               <div class="popup-date">${m.date || ''}</div>
                <div class="popup-comment">${m.comment || ''}</div>
+               <div class="popup-date">${m.date || ''}</div>
              </div>`;
     if (currentMode === 'delete') {
       html += `<button class="popup-delete" onclick="deleteMemory('${m.id}')">🗑 この思い出を削除</button>`;
