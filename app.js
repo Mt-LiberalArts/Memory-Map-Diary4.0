@@ -482,7 +482,7 @@ async function saveMarker() {
     memories.push({
       id,
       lat:         tempMarker.getLatLng().lat,
-      lng:         ((tempMarker.getLatLng().lng + 180) % 360 + 360) % 360 - 180, // 正規化（保険）
+      lng:         tempMarker.getLatLng().lng,
       date:        document.getElementById('dateInput').value,
       comment:     document.getElementById('commentInput').value,
       photoFileId: photoFileId || '',
