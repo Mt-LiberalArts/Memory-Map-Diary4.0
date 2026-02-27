@@ -26,7 +26,7 @@
 }
 body {
   height: 100dvh;
-  background: var(--ink);
+  background: #a8c8d8;  /* OSMの海の色 */
   overflow: hidden;
   position: fixed;
   width: 100%;
@@ -330,7 +330,7 @@ textarea.form-input { resize: none; height: 100px; line-height: 1.6; }
 }
 .toast.visible  { opacity: 1; }
 .toast.error    { background: var(--accent); color: white; }
-.toast.info     { background: var(--ink); color: var(--bg); }
+.toast.info     { background: #a8c8d8;  /* OSMの海の色 */ color: var(--bg); }
 .toast.relogin  { background: #fff0ee; color: var(--accent);
                   border: 1.5px solid #ffd5cc; pointer-events: auto; cursor: pointer; }
 

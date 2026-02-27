@@ -7,7 +7,7 @@
    ─ トースト通知
    ─ モード切り替え
    ─ シート（入力フォーム）開閉
-   ─ 写真処理（EXIFDate取得・リサイズ）
+   ─ 写真処理（EXIF日付取得・リサイズ）
    ─ ローディング表示
    ─ Google Drive操作
    ─ 思い出の保存・読み込み・描画・削除
@@ -41,10 +41,10 @@ let memories       = [];
    ─ 切断時・復帰時にトーストで通知
 ═══════════════════════════════════════════ */
 window.addEventListener('offline', () => {
-  showToast('You are offline. Please check your connection', 'error', 5000);
+  showToast('オフラインです。接続を確認してください', 'error', 5000);
 });
 window.addEventListener('online', () => {
-  showToast('Connection restored ✓', 'info', 2000);
+  showToast('接続が回復しました ✓', 'info', 2000);
 });
 
 /* ═══════════════════════════════════════════
@@ -55,9 +55,10 @@ window.addEventListener('online', () => {
 ═══════════════════════════════════════════ */
 const map = L.map('map', {
   zoomControl: false,
-  maxBoundsViscosity: 1.0   // 境界で完全に止まる
-}).setView([40.7128, -74.0060], 15); // NYC default
-map.setMaxBounds([[-90, -180], [90, 180]]); // 経度±180を絶対に越えない
+  maxBoundsViscosity: 1.0,
+  minZoom: 3
+}).setView([40.7128, -74.0060], 15);
+map.setMaxBounds([[-60, -180], [75, 180]]);
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap',
   noWrap: true
@@ -165,11 +166,11 @@ function handleDriveError(e) {
   if (status === 401) {
     accessToken = null;
     updateLoginUI(false);
-    showToast('Session expired. Tap to sign in again', 'relogin', 0);
+    showToast('セッションが切れました。タップして再ログイン', 'relogin', 0);
   } else if (status === 404) {
-    showToast('File not found (may have been deleted from Drive)', 'error');
+    showToast('ファイルが見つかりません（Driveで削除された可能性があります）', 'error');
   } else {
-    showToast('An error occurred: ' + (e?.message || status), 'error');
+    showToast('エラーが発生しました: ' + (e?.message || status), 'error');
   }
 }
 
@@ -190,7 +191,7 @@ document.getElementById('logoutBtn').onclick = () => {
 
 function updateLoginUI(loggedIn) {
   const status = document.getElementById('loginStatus');
-  status.textContent = loggedIn ? 'Signed in ✓' : 'Not signed in';
+  status.textContent = loggedIn ? 'ログイン済み ✓' : '未ログイン';
   status.className = 'login-status' + (loggedIn ? ' logged-in' : '');
   document.getElementById('loginBtn').style.display  = loggedIn ? 'none'  : 'block';
   document.getElementById('logoutBtn').style.display = loggedIn ? 'block' : 'none';
@@ -203,9 +204,9 @@ function updateLoginUI(loggedIn) {
    ─ delete : マーカータップで削除
 ═══════════════════════════════════════════ */
 const hints = {
-  add:    'Tap the map to add a memory',
-  view:   'Tap a marker to view',
-  delete: 'Tap a marker to edit or delete'
+  add:    '地図をタップして思い出を追加',
+  view:   'マーカーをタップして表示',
+  delete: 'マーカーをタップして編集・削除'
 };
 
 function switchMode(mode) {
@@ -226,7 +227,7 @@ function switchMode(mode) {
 
 /* ═══════════════════════════════════════════
    § シート（入力フォーム）開閉
-   ─ openSheet  : Dateを今日にリセットして開く
+   ─ openSheet  : 日付を今日にリセットして開く
    ─ closeSheet : シートを閉じて仮マーカーを除去
 ═══════════════════════════════════════════ */
 function openSheet() {
@@ -234,7 +235,7 @@ function openSheet() {
   document.getElementById('commentInput').value    = '';
   document.getElementById('photoInput').value      = '';
   document.getElementById('photoPicker').className = 'photo-picker';
-  document.getElementById('pickerText').textContent = 'Tap to select';
+  document.getElementById('pickerText').textContent = 'タップして選択';
   document.getElementById('photoPreview').style.display = 'none';
   tempPhotoBlob = null;
 
@@ -259,8 +260,8 @@ function closeSheet() {
    § 写真処理
    ─ 選択した画像を最大900pxにリサイズして
      JPEG（品質75%）に変換・プレビュー表示
-   ─ EXIFから撮影日を取得してDate欄に自動入力
-     （取得できなければ今日のDateを維持）
+   ─ EXIFから撮影日を取得して日付欄に自動入力
+     （取得できなければ今日の日付を維持）
 ═══════════════════════════════════════════ */
 
 // EXIFの撮影日を取得する（DataView使用）
@@ -306,7 +307,7 @@ document.getElementById('photoInput').addEventListener('change', e => {
   if (!file) return;
   const reader = new FileReader();
   reader.onload = ev => {
-    // EXIFからDate取得を試みる
+    // EXIFから日付取得を試みる
     const exifDate = getExifDate(ev.target.result);
     if (exifDate) {
       document.getElementById('dateInput').value = exifDate;
@@ -330,7 +331,7 @@ document.getElementById('photoInput').addEventListener('change', e => {
         document.getElementById('photoPicker').style.display = 'none';
         // ピッカーにも選択済みスタイル
         document.getElementById('photoPicker').className = 'photo-picker has-photo';
-        document.getElementById('pickerText').textContent = 'Change photo';
+        document.getElementById('pickerText').textContent = '写真を変更';
       }, 'image/jpeg', 0.75);
     };
     // ArrayBufferからURLを作ってimgに渡す
@@ -344,7 +345,7 @@ document.getElementById('photoInput').addEventListener('change', e => {
    § ローディング表示
    ─ setLoading(true/false, テキスト) で制御
 ═══════════════════════════════════════════ */
-function setLoading(on, text = 'Processing...') {
+function setLoading(on, text = '処理中...') {
   document.getElementById('loadingText').textContent = text;
   document.getElementById('loadingOverlay').classList.toggle('visible', on);
 }
@@ -452,7 +453,7 @@ async function loadPhotoBlob(fileId) {
     photoBlobCache[fileId] = url;
     return url;
   } catch (e) {
-    console.warn('Photo load failed', fileId, e);
+    console.warn('写真取得失敗', fileId, e);
     return null;
   }
 }
@@ -460,13 +461,13 @@ async function loadPhotoBlob(fileId) {
 /* ═══════════════════════════════════════════
    § 思い出の保存
    ─ 1. 写真があればDriveにアップロード
-   ─ 2. 緯度経度・Date・CommentをJSONに追加
+   ─ 2. 緯度経度・日付・コメントをJSONに追加
    ─ 3. DriveのJSONファイルを更新
    ─ 4. マーカーを再描画
 ═══════════════════════════════════════════ */
 async function saveMarker() {
   if (!accessToken || !tempMarker) return;
-  setLoading(true, 'Saving...');
+  setLoading(true, '保存中...');
   try {
     await loadDataFile();
 
@@ -474,7 +475,7 @@ async function saveMarker() {
     let photoFileId = null;
 
     if (tempPhotoBlob) {
-      setLoading(true, 'Uploading photo...');
+      setLoading(true, '写真をアップロード中...');
       photoFileId = await uploadPhoto(tempPhotoBlob, id);
     }
 
@@ -488,7 +489,7 @@ async function saveMarker() {
       createdAt:   new Date().toISOString()
     });
 
-    setLoading(true, 'データをSaving...');
+    setLoading(true, 'データを保存中...');
     await saveDataFile();
     closeSheet();
     renderMarkers();
@@ -508,7 +509,7 @@ async function saveMarker() {
 ═══════════════════════════════════════════ */
 async function loadMemories() {
   if (!accessToken) return;
-  setLoading(true, 'Loading...');
+  setLoading(true, '読み込み中...');
   try {
     await loadDataFile();
     renderMarkers();
@@ -541,16 +542,16 @@ function renderMarkers() {
         html += `
           <div class="popup-edit-form">
             <div>
-              <div class="popup-edit-label">Comment</div>
+              <div class="popup-edit-label">コメント</div>
               <textarea id="edit-comment-${m.id}">${m.comment || ''}</textarea>
             </div>
             <div>
-              <div class="popup-edit-label">Date</div>
+              <div class="popup-edit-label">日付</div>
               <input type="date" id="edit-date-${m.id}" value="${m.date || ''}" />
             </div>
           </div>
-          <button class="popup-save" onclick="editMemory('${m.id}')">Save changes</button>
-          <button class="popup-delete" onclick="deleteMemory('${m.id}')">🗑 Delete this memory</button>
+          <button class="popup-save" onclick="editMemory('${m.id}')">変更を保存</button>
+          <button class="popup-delete" onclick="deleteMemory('${m.id}')">🗑 この思い出を削除</button>
         `;
       }
       html += `</div>`;
@@ -582,8 +583,8 @@ function renderMarkers() {
    ─ 4. マーカーを再描画
 ═══════════════════════════════════════════ */
 window.deleteMemory = async (id) => {
-  if (!confirm('Delete this memory?')) return;
-  setLoading(true, 'Deleting...');
+  if (!confirm('この思い出を削除しますか？')) return;
+  setLoading(true, '削除中...');
   try {
     const idx = memories.findIndex(m => m.id === id);
     if (idx === -1) return;
@@ -591,7 +592,7 @@ window.deleteMemory = async (id) => {
 
     if (mem.photoFileId) {
       try { await gapi.client.drive.files.delete({ fileId: mem.photoFileId }); }
-      catch (e) { console.warn('Photo delete failed', e); }
+      catch (e) { console.warn('写真削除失敗', e); }
     }
 
     memories.splice(idx, 1);
@@ -616,7 +617,7 @@ window.editMemory = async (id) => {
   const comment = document.getElementById(`edit-comment-${id}`)?.value ?? '';
   const date    = document.getElementById(`edit-date-${id}`)?.value ?? '';
 
-  setLoading(true, 'Saving...');
+  setLoading(true, '保存中...');
   try {
     const idx = memories.findIndex(m => m.id === id);
     if (idx === -1) return;
@@ -624,7 +625,7 @@ window.editMemory = async (id) => {
     memories[idx].date    = date;
     await saveDataFile();
     renderMarkers();
-    showToast('Changes saved ✓', 'info', 2000);
+    showToast('変更を保存しました ✓', 'info', 2000);
   } catch (e) {
     console.error(e);
     handleDriveError(e);
