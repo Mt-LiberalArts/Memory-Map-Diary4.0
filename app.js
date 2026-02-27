@@ -20,7 +20,7 @@
    ─ 各種状態変数（認証・モード・マーカー等）
 ═══════════════════════════════════════════ */
 const CLIENT_ID     = '258493345784-tecrt34v0mqpq8rkmoajjhgi9lpvmfp5.apps.googleusercontent.com';
-const SCOPE         = 'https://www.googleapis.com/auth/drive.file';
+const SCOPE         = 'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly';
 const DATA_FILENAME = 'memory_map_data.json';
 const PHOTOS_FOLDER = 'MemoryMapPhotos';
 
@@ -97,7 +97,9 @@ function gisLoaded() {
       accessToken = resp.access_token;
       gapi.client.setToken({ access_token: accessToken });
       updateLoginUI(true);
-      scheduleTokenRefresh(); // ← サイレントリフレッシュを予約
+      // リフレッシュ用にコールバックを切り替え
+      tokenClient.callback = onTokenRefreshed;
+      scheduleTokenRefresh();
       await loadMemories();
     }
   });
@@ -118,6 +120,17 @@ function scheduleTokenRefresh() {
   setTimeout(() => {
     tokenClient.requestAccessToken({ prompt: '' }); // promptなし＝画面を出さずに更新
   }, 55 * 60 * 1000); // 55分
+}
+
+// トークンリフレッシュ成功時のコールバック（キャッシュをリセットして再取得）
+async function onTokenRefreshed(resp) {
+  if (resp.error) return;
+  accessToken = resp.access_token;
+  gapi.client.setToken({ access_token: accessToken });
+  dataFileId = null;        // ← キャッシュをリセット
+  photosFolderId = null;    // ← フォルダIDもリセット
+  scheduleTokenRefresh();
+  await loadMemories();     // ← 最新データを再取得
 }
 
 /* ─ トースト通知 ─
@@ -162,6 +175,9 @@ document.getElementById('logoutBtn').onclick = () => {
     memories = [];
     dataFileId = null;
     photosFolderId = null;
+    // BlobURLを解放してメモリリーク防止
+    Object.values(photoBlobCache).forEach(url => URL.revokeObjectURL(url));
+    Object.keys(photoBlobCache).forEach(k => delete photoBlobCache[k]);
     markerLayer.clearLayers();
     updateLoginUI(false);
   });
@@ -415,8 +431,25 @@ async function uploadPhoto(blob, id) {
   return data.id;
 }
 
-function photoUrl(fileId) {
-  return `https://lh3.googleusercontent.com/d/${fileId}=s1000`;
+// 写真のBlobURLキャッシュ（fileId → objectURL）
+const photoBlobCache = {};
+
+async function loadPhotoBlob(fileId) {
+  if (photoBlobCache[fileId]) return photoBlobCache[fileId];
+  try {
+    const res = await fetch(
+      `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`,
+      { headers: { Authorization: 'Bearer ' + accessToken } }
+    );
+    if (!res.ok) return null;
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    photoBlobCache[fileId] = url;
+    return url;
+  } catch (e) {
+    console.warn('写真取得失敗', fileId, e);
+    return null;
+  }
 }
 
 /* ═══════════════════════════════════════════
@@ -489,33 +522,50 @@ function renderMarkers() {
   memories.forEach(m => {
     const marker = L.marker([m.lat, m.lng]).addTo(markerLayer);
 
-    let html = `<div class="popup-wrap">`;
-    if (m.photoFileId) {
-      html += `<img class="popup-img" src="${photoUrl(m.photoFileId)}" loading="lazy" onerror="this.style.display='none'">`;
-    }
-    html += `<div class="popup-body">
-               <div class="popup-comment">${m.comment || ''}</div>
-               <div class="popup-date">${m.date || ''}</div>
-             </div>`;
-    if (currentMode === 'delete') {
-      html += `
-        <div class="popup-edit-form">
-          <div>
-            <div class="popup-edit-label">コメント</div>
-            <textarea id="edit-comment-${m.id}">${m.comment || ''}</textarea>
+    // まず写真なしでポップアップを描画
+    const buildHtml = (imgSrc) => {
+      let html = `<div class="popup-wrap">`;
+      if (imgSrc) {
+        html += `<img class="popup-img" src="${imgSrc}">`;
+      }
+      html += `<div class="popup-body">
+                 <div class="popup-comment">${m.comment || ''}</div>
+                 <div class="popup-date">${m.date || ''}</div>
+               </div>`;
+      if (currentMode === 'delete') {
+        html += `
+          <div class="popup-edit-form">
+            <div>
+              <div class="popup-edit-label">コメント</div>
+              <textarea id="edit-comment-${m.id}">${m.comment || ''}</textarea>
+            </div>
+            <div>
+              <div class="popup-edit-label">日付</div>
+              <input type="date" id="edit-date-${m.id}" value="${m.date || ''}" />
+            </div>
           </div>
-          <div>
-            <div class="popup-edit-label">日付</div>
-            <input type="date" id="edit-date-${m.id}" value="${m.date || ''}" />
-          </div>
-        </div>
-        <button class="popup-save" onclick="editMemory('${m.id}')">変更を保存</button>
-        <button class="popup-delete" onclick="deleteMemory('${m.id}')">🗑 この思い出を削除</button>
-      `;
-    }
-    html += `</div>`;
+          <button class="popup-save" onclick="editMemory('${m.id}')">変更を保存</button>
+          <button class="popup-delete" onclick="deleteMemory('${m.id}')">🗑 この思い出を削除</button>
+        `;
+      }
+      html += `</div>`;
+      return html;
+    };
 
-    marker.bindPopup(html, { maxWidth: 280 });
+    // 初期表示（写真なし or キャッシュあり）
+    const cached = m.photoFileId ? photoBlobCache[m.photoFileId] : null;
+    marker.bindPopup(buildHtml(cached), { maxWidth: 280 });
+
+    // ポップアップを開いたとき写真を非同期ロード
+    if (m.photoFileId) {
+      marker.on('popupopen', async () => {
+        const url = await loadPhotoBlob(m.photoFileId);
+        if (url) {
+          const popup = marker.getPopup();
+          popup.setContent(buildHtml(url));
+        }
+      });
+    }
   });
 }
 
