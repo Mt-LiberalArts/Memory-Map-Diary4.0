@@ -85,13 +85,34 @@
   <button class="btn-cancel" onclick="closeSheet()">Cancel</button>
 </div>
 
-<!-- 外部ライブラリ -->
+<!-- ─────────────────────────────────────
+     外部ライブラリ
+───────────────────────────────────── -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script src="https://accounts.google.com/gsi/client" async defer onload="gisLoaded()"></script>
-<script src="https://apis.google.com/js/api.js" async defer onload="gapiLoaded()"></script>
 
-<!-- アプリロジック -->
-<script src="app.js"></script>
+<!-- ─────────────────────────────────────
+     アプリモジュール（依存順に読み込む）
+     1. config.js   → 定数・STATE の定義
+     2. ui.js       → showToast / setLoading / handleDriveError
+     3. map.js      → Leaflet初期化・renderMarkers・switchMode
+     4. sheet.js    → openSheet / closeSheet
+     5. photo.js    → EXIF・リサイズ・プレビュー
+     6. drive.js    → Drive CRUD
+     7. memories.js → saveMarker / loadMemories / editMemory / deleteMemory
+     8. auth.js     → Google認証（loadMemories を呼ぶため最後）
+───────────────────────────────────── -->
+<script src="js/config.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/map.js"></script>
+<script src="js/sheet.js"></script>
+<script src="js/photo.js"></script>
+<script src="js/drive.js"></script>
+<script src="js/memories.js"></script>
+<script src="js/auth.js"></script>
+
+<!-- Google Identity / GAPI（非同期・コールバック経由で初期化）-->
+<script src="https://accounts.google.com/gsi/client" async defer onload="gisLoaded()"></script>
+<script src="https://apis.google.com/js/api.js"      async defer onload="gapiLoaded()"></script>
 
 </body>
 </html>
