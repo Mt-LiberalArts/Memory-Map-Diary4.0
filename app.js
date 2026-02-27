@@ -53,7 +53,11 @@ window.addEventListener('online', () => {
    ─ 現在地を取得して中心にセット
    ─ タップ時に追加モードならシートを開く
 ═══════════════════════════════════════════ */
-const map = L.map('map', { zoomControl: false }).setView([40.7128, -74.0060], 15); // NYC default
+const map = L.map('map', {
+  zoomControl: false,
+  maxBoundsViscosity: 1.0   // 境界で完全に止まる
+}).setView([40.7128, -74.0060], 15); // NYC default
+map.setMaxBounds([[-90, -180], [90, 180]]); // 経度±180を絶対に越えない
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   attribution: '© OpenStreetMap'
 }).addTo(map);
@@ -476,7 +480,7 @@ async function saveMarker() {
     memories.push({
       id,
       lat:         tempMarker.getLatLng().lat,
-      lng:         tempMarker.getLatLng().lng,
+      lng:         ((tempMarker.getLatLng().lng + 180) % 360 + 360) % 360 - 180, // 正規化（保険）
       date:        document.getElementById('dateInput').value,
       comment:     document.getElementById('commentInput').value,
       photoFileId: photoFileId || '',
