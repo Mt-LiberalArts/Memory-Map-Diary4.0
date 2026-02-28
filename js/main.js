@@ -2,11 +2,11 @@
    main.js — エントリーポイント
    ─ 全モジュールをimportして初期化
    ─ HTMLのボタンイベントをここで一括登録
-   ─ Google APIのコールバックをwindowに公開
+   ─ Google APIのコールバックをポーリングで待機
 ═══════════════════════════════════════════ */
 import { map, switchMode, renderMarkers, initMapCallbacks } from './map.js';
 import { closeSheet } from './sheet.js';
-import { saveMarker, loadMemories, editMemory, deleteMemory, initMemories } from './memories.js';
+import { saveMarker, editMemory, deleteMemory, initMemories } from './memories.js';
 import { initPhotoInput } from './photo.js';
 import { gapiLoaded, gisLoaded, initAuth } from './auth.js';
 
@@ -30,8 +30,21 @@ document.getElementById('photoPreview').addEventListener('click', () => document
 initPhotoInput();
 initAuth();
 
-/* ─ Google APIのコールバックをwindowに公開 ─
-   type="module"内の関数はwindowから見えないため明示的に公開
+/* ─ Google APIのロード待機 ─
+   type="module" は非同期読み込みのため
+   onload より先に window.xxx が公開できない。
+   ポーリングで Google API の準備完了を待つ。
 ── */
-window.gapiLoaded = gapiLoaded;
-window.gisLoaded  = gisLoaded;
+const waitForGapi = setInterval(() => {
+  if (window.gapi) {
+    clearInterval(waitForGapi);
+    gapiLoaded();
+  }
+}, 100);
+
+const waitForGis = setInterval(() => {
+  if (window.google?.accounts) {
+    clearInterval(waitForGis);
+    gisLoaded();
+  }
+}, 100);

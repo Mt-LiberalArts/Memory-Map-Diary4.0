@@ -38,7 +38,7 @@
 <!-- モードヒント -->
 <div class="mode-hint" id="modeHint"></div>
 
-<!-- ボトムナビ（onclickなし → main.jsで登録） -->
+<!-- ボトムナビ -->
 <div class="bottom-nav">
   <div class="nav-inner">
     <button class="nav-btn active" id="navAdd">
@@ -53,7 +53,7 @@
   </div>
 </div>
 
-<!-- シートオーバーレイ（onclickなし → main.jsで登録） -->
+<!-- シートオーバーレイ -->
 <div class="sheet-overlay" id="sheetOverlay"></div>
 
 <!-- 入力フォーム -->
@@ -63,7 +63,6 @@
 
   <div class="form-group">
     <label class="form-label">Photo</label>
-    <!-- onclickなし → main.jsで登録 -->
     <div class="photo-picker" id="photoPicker">
       <span class="picker-icon">📷</span>
       <span class="picker-text" id="pickerText">Tap to select</span>
@@ -82,26 +81,19 @@
     <input type="date" class="form-input" id="dateInput" />
   </div>
 
-  <!-- onclickなし → main.jsで登録 -->
   <button class="btn-save">Save to this location</button>
   <button class="btn-cancel">Cancel</button>
 </div>
 
-<!-- ─────────────────────────────────────
-     外部ライブラリ
-───────────────────────────────────── -->
+<!-- 外部ライブラリ -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- ─────────────────────────────────────
-     アプリ本体：これだけ！
-     type="module" により import/export が使える
-     → 読み込み順は自動解決
-───────────────────────────────────── -->
-<script type="module" src="js/main.js"></script>
+<!-- Google API（onloadなし → main.jsのポーリングで待機） -->
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js"      async defer></script>
 
-<!-- Google API（コールバックはmain.jsでwindowに公開済み） -->
-<script src="https://accounts.google.com/gsi/client" async defer onload="gisLoaded()"></script>
-<script src="https://apis.google.com/js/api.js"      async defer onload="gapiLoaded()"></script>
+<!-- アプリ本体 -->
+<script type="module" src="js/main.js"></script>
 
 </body>
 </html>
