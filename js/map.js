@@ -99,7 +99,13 @@ export function renderMarkers() {
     marker.bindPopup(buildHtml(cached), { maxWidth: 280 });
 
     marker.on('popupopen', async () => {
-      // ポップアップボタンにイベント登録
+      // 写真を非同期ロード（先に完了させてからイベント登録）
+      if (m.photoFileId) {
+        const url = await loadPhotoBlob(m.photoFileId);
+        if (url) marker.getPopup().setContent(buildHtml(url));
+      }
+
+      // setContent後の最新DOMにイベント登録
       const popupEl = marker.getPopup().getElement();
       popupEl?.querySelector('[data-edit]')?.addEventListener('click', e => {
         _editMemory(e.currentTarget.dataset.edit);
@@ -107,12 +113,6 @@ export function renderMarkers() {
       popupEl?.querySelector('[data-delete]')?.addEventListener('click', e => {
         _deleteMemory(e.currentTarget.dataset.delete);
       });
-
-      // 写真を非同期ロード
-      if (m.photoFileId) {
-        const url = await loadPhotoBlob(m.photoFileId);
-        if (url) marker.getPopup().setContent(buildHtml(url));
-      }
     });
   });
 }
