@@ -113,6 +113,11 @@ export function renderMarkers() {
       popupEl?.querySelector('[data-delete]')?.addEventListener('click', e => {
         _deleteMemory(e.currentTarget.dataset.delete);
       });
+
+      // 写真タップで拡大モーダル
+      popupEl?.querySelector('.popup-img')?.addEventListener('click', e => {
+        openPhotoModal(e.currentTarget.src);
+      });
     });
   });
 }
@@ -129,3 +134,36 @@ function escapeHtml(str) {
 
 /* ─ 起動時ヒント ─ */
 setTimeout(() => showModeHint('add'), 800);
+
+/* ─ 写真拡大モーダル ─ */
+function openPhotoModal(src) {
+  const modal   = document.getElementById('photoModal');
+  const img     = document.getElementById('photoModalImg');
+  const saveBtn = document.getElementById('photoModalSave');
+  const closeBtn= document.getElementById('photoModalClose');
+  const overlay = document.getElementById('photoModalOverlay');
+
+  img.src = src;
+  modal.classList.add('open');
+
+  // 保存ボタン
+  const onSave = () => {
+    const a = document.createElement('a');
+    a.href     = src;
+    a.download = 'memory_' + Date.now() + '.jpg';
+    a.click();
+  };
+
+  // 閉じる
+  const close = () => {
+    modal.classList.remove('open');
+    img.src = '';
+    saveBtn.removeEventListener('click', onSave);
+    closeBtn.removeEventListener('click', close);
+    overlay.removeEventListener('click', close);
+  };
+
+  saveBtn.addEventListener('click', onSave);
+  closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', close);
+}
