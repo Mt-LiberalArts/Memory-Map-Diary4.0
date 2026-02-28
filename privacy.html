@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy — PhotoMapio Moments</title>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:     #faf7f2;
+      --ink:    #1a1a2e;
+      --warm:   #e8ddd0;
+      --accent: #c9614a;
+      --blue:   #4a8fa8;
+      --shadow: rgba(26, 26, 46, 0.10);
+      --radius: 20px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Zen Maru Gothic', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* ── ヘッダー ── */
+    .header {
+      background: var(--ink);
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .header a {
+      color: var(--warm);
+      text-decoration: none;
+      font-size: 13px;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+    .header a:hover { opacity: 1; }
+    .header-title {
+      color: white;
+      font-size: 16px;
+      font-weight: 700;
+    }
+    .header-sep { color: #555; font-size: 13px; }
+
+    /* ── メインコンテンツ ── */
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    .page-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .page-title span { color: var(--accent); }
+
+    .updated {
+      font-size: 12px;
+      color: #aaa;
+      margin-bottom: 40px;
+    }
+
+    /* ── セクション ── */
+    .section {
+      background: white;
+      border-radius: var(--radius);
+      padding: 28px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 12px var(--shadow);
+    }
+
+    .section-title {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-title::before {
+      content: '';
+      display: block;
+      width: 4px;
+      height: 16px;
+      background: var(--accent);
+      border-radius: 2px;
+    }
+
+    .section p {
+      font-size: 14px;
+      line-height: 1.9;
+      color: #444;
+      margin-bottom: 10px;
+    }
+    .section p:last-child { margin-bottom: 0; }
+
+    .section ul {
+      list-style: none;
+      padding: 0;
+    }
+    .section ul li {
+      font-size: 14px;
+      line-height: 1.8;
+      color: #444;
+      padding: 6px 0 6px 20px;
+      position: relative;
+      border-bottom: 1px solid #f5f5f5;
+    }
+    .section ul li:last-child { border-bottom: none; }
+    .section ul li::before {
+      content: '📍';
+      position: absolute;
+      left: 0;
+      font-size: 12px;
+    }
+
+    /* ── 言語切り替えタブ ── */
+    .lang-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+    }
+    .lang-tab {
+      padding: 8px 20px;
+      border-radius: 30px;
+      border: 1.5px solid var(--warm);
+      background: none;
+      font-family: 'Zen Maru Gothic', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      color: #aaa;
+      transition: all 0.2s;
+    }
+    .lang-tab.active {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: white;
+    }
+
+    .lang-content { display: none; }
+    .lang-content.active { display: block; }
+
+    /* ── フッター ── */
+    .footer {
+      text-align: center;
+      padding: 32px 24px;
+      font-size: 12px;
+      color: #bbb;
+    }
+    .footer a { color: var(--blue); text-decoration: none; }
+
+    /* ── 連絡先カード ── */
+    .contact-card {
+      background: var(--ink);
+      border-radius: var(--radius);
+      padding: 24px 28px;
+      margin-top: 16px;
+    }
+    .contact-card p {
+      color: var(--warm) !important;
+      font-size: 13px !important;
+    }
+    .contact-card a { color: #a8c8d8; }
+  </style>
+</head>
+<body>
+
+<!-- ヘッダー -->
+<div class="header">
+  <a href="/">← Back to App</a>
+  <span class="header-sep">/</span>
+  <span class="header-title">Privacy Policy</span>
+</div>
+
+<div class="container">
+
+  <h1 class="page-title">Privacy <span>Policy</span></h1>
+  <p class="updated">Last updated: February 28, 2026</p>
+
+  <!-- 言語切り替え -->
+  <div class="lang-tabs">
+    <button class="lang-tab active" onclick="switchLang('en')">English</button>
+    <button class="lang-tab" onclick="switchLang('ja')">日本語</button>
+  </div>
+
+  <!-- ── English ── -->
+  <div class="lang-content active" id="lang-en">
+
+    <div class="section">
+      <div class="section-title">Overview</div>
+      <p>PhotoMapio Moments ("the App") is a personal memory-mapping web application. We are committed to protecting your privacy. This policy explains what data we access and how it is used.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Data We Access</div>
+      <ul>
+        <li>Photos you choose to attach to a memory</li>
+        <li>Text comments and dates you enter</li>
+        <li>Geographic coordinates of locations you tap on the map</li>
+        <li>A JSON data file stored in your own Google Drive</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <div class="section-title">How Your Data Is Stored</div>
+      <p>All data — including photos, comments, dates, and location pins — is stored exclusively in <strong>your own Google Drive account</strong>. We do not operate any external servers or databases.</p>
+      <p>The App uses the <code>drive.file</code> scope, which limits access only to files created by the App itself. We cannot access any other files in your Drive.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Third-Party Sharing</div>
+      <p>We do not sell, share, or transfer your personal data to any third parties. Your memories stay in your Google Drive and are accessible only by you.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Google OAuth</div>
+      <p>The App uses Google Sign-In (OAuth 2.0) for authentication. We only request the minimum permissions required:</p>
+      <ul>
+        <li><strong>drive.file</strong> — Read and write files created by this App</li>
+        <li><strong>drive.readonly</strong> — Read existing memory data files</li>
+      </ul>
+      <p>You can revoke access at any time via <a href="https://myaccount.google.com/permissions" target="_blank">Google Account Permissions</a>.</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Data Deletion</div>
+      <p>To delete all your data, simply delete the following from your Google Drive:</p>
+      <ul>
+        <li>The file <strong>memory_map_data.json</strong></li>
+        <li>The folder <strong>MemoryMapPhotos</strong></li>
+      </ul>
+    </div>
+
+    <div class="section contact-card">
+      <div class="section-title" style="color:#a8c8d8">Contact</div>
+      <p>If you have any questions about this Privacy Policy, please contact us at:<br>
+      <a href="mailto:privacy@photomapioments.app">privacy@photomapioments.app</a></p>
+    </div>
+
+  </div>
+
+  <!-- ── 日本語 ── -->
+  <div class="lang-content" id="lang-ja">
+
+    <div class="section">
+      <div class="section-title">概要</div>
+      <p>PhotoMapio Moments（以下「本アプリ」）は、個人の思い出を地図上に記録するWebアプリケーションです。本プライバシーポリシーでは、本アプリがアクセスするデータとその利用方法について説明します。</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">取得するデータ</div>
+      <ul>
+        <li>思い出に添付する写真</li>
+        <li>入力したテキストコメントおよび日付</li>
+        <li>地図上でタップした地点の緯度・経度</li>
+        <li>お客様ご自身のGoogle Driveに保存されるJSONデータファイル</li>
+      </ul>
+    </div>
+
+    <div class="section">
+      <div class="section-title">データの保存場所</div>
+      <p>写真・コメント・日付・位置情報を含むすべてのデータは、<strong>お客様ご自身のGoogleドライブアカウント</strong>にのみ保存されます。当方は外部サーバーやデータベースを一切運用しておりません。</p>
+      <p>本アプリは <code>drive.file</code> スコープを使用しており、本アプリが作成したファイルにのみアクセスできます。その他のドライブファイルにはアクセスできません。</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">第三者への提供</div>
+      <p>お客様の個人データを第三者に販売・提供・転送することは一切ありません。思い出データはお客様のGoogleドライブ内に保管され、お客様のみがアクセスできます。</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">Google OAuth について</div>
+      <p>本アプリはGoogle Sign-In（OAuth 2.0）を使用します。必要最小限の権限のみを要求します：</p>
+      <ul>
+        <li><strong>drive.file</strong> — 本アプリが作成したファイルの読み書き</li>
+        <li><strong>drive.readonly</strong> — 既存の思い出データファイルの読み取り</li>
+      </ul>
+      <p>アクセス権限はいつでも <a href="https://myaccount.google.com/permissions" target="_blank">Googleアカウントの権限設定</a> から取り消すことができます。</p>
+    </div>
+
+    <div class="section">
+      <div class="section-title">データの削除方法</div>
+      <p>すべてのデータを削除するには、Googleドライブから以下を削除してください：</p>
+      <ul>
+        <li>ファイル：<strong>memory_map_data.json</strong></li>
+        <li>フォルダ：<strong>MemoryMapPhotos</strong></li>
+      </ul>
+    </div>
+
+    <div class="section contact-card">
+      <div class="section-title" style="color:#a8c8d8">お問い合わせ</div>
+      <p>本プライバシーポリシーに関するご質問は下記までご連絡ください：<br>
+      <a href="mailto:privacy@photomapioments.app">privacy@photomapioments.app</a></p>
+    </div>
+
+  </div>
+</div>
+
+<div class="footer">
+  © 2026 PhotoMapio Moments · <a href="/">Back to App</a>
+</div>
+
+<script>
+function switchLang(lang) {
+  document.querySelectorAll('.lang-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.lang-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('lang-' + lang).classList.add('active');
+  event.target.classList.add('active');
+}
+</script>
+
+</body>
+</html>
