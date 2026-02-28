@@ -1,34 +1,20 @@
 /* ═══════════════════════════════════════════
-   drive.js — Google Drive操作
+   drive.js — Google Drive操作（App Folder版）
+   ─ appDataFolder を使用
+   ─ ensureFolder は不要（Googleが自動管理）
+   ─ 写真も appDataFolder 内に保存
+   ─ ユーザーのDriveには表示されない
 ═══════════════════════════════════════════ */
 import { CONFIG, STATE } from './config.js';
 
-export async function ensureFolder() {
-  if (STATE.photosFolderId) return STATE.photosFolderId;
-
-  const res = await gapi.client.drive.files.list({
-    q:      `name='${CONFIG.PHOTOS_FOLDER}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-    fields: 'files(id)',
-  });
-
-  if (res.result.files.length > 0) {
-    STATE.photosFolderId = res.result.files[0].id;
-  } else {
-    const created = await gapi.client.drive.files.create({
-      resource: { name: CONFIG.PHOTOS_FOLDER, mimeType: 'application/vnd.google-apps.folder' },
-      fields:   'id',
-    });
-    STATE.photosFolderId = created.result.id;
-  }
-  return STATE.photosFolderId;
-}
-
+/* ─ JSONデータファイルを読み込む ─ */
 export async function loadDataFile() {
   if (STATE.dataFileId) return;
 
   const res = await gapi.client.drive.files.list({
-    q:      `name='${CONFIG.DATA_FILENAME}' and trashed=false`,
-    fields: 'files(id)',
+    q:       `name='${CONFIG.DATA_FILENAME}'`,
+    spaces:  'appDataFolder',   // ← appDataFolder内を検索
+    fields:  'files(id)',
   });
 
   const files = res.result.files ?? [];
@@ -46,11 +32,17 @@ export async function loadDataFile() {
   }
 }
 
+/* ─ JSONデータファイルを保存 or 更新 ─ */
 export async function saveDataFile() {
   const json = JSON.stringify(STATE.memories);
 
   if (!STATE.dataFileId) {
-    const meta = { name: CONFIG.DATA_FILENAME, mimeType: 'application/json' };
+    // 新規作成：appDataFolder に保存
+    const meta = {
+      name:    CONFIG.DATA_FILENAME,
+      mimeType: 'application/json',
+      parents: ['appDataFolder'],  // ← ここがポイント
+    };
     const form = new FormData();
     form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
     form.append('file',     new Blob([json],                 { type: 'application/json' }));
@@ -64,6 +56,7 @@ export async function saveDataFile() {
     STATE.dataFileId = data.id;
 
   } else {
+    // 既存ファイルを更新
     const res = await fetch(
       `https://www.googleapis.com/upload/drive/v3/files/${STATE.dataFileId}?uploadType=media`,
       {
@@ -79,10 +72,16 @@ export async function saveDataFile() {
   }
 }
 
+/* ─ 写真をappDataFolderにアップロード ─
+   ensureFolder不要・permissionsも不要（非公開）
+   写真はBlobURLでアプリ内表示するので公開不要
+── */
 export async function uploadPhoto(blob, id) {
-  const folderId = await ensureFolder();
-  const meta     = { name: id + '.jpg', parents: [folderId] };
-  const form     = new FormData();
+  const meta = {
+    name:    id + '.jpg',
+    parents: ['appDataFolder'],  // ← appDataFolderに直接
+  };
+  const form = new FormData();
   form.append('metadata', new Blob([JSON.stringify(meta)], { type: 'application/json' }));
   form.append('file', blob);
 
@@ -93,13 +92,11 @@ export async function uploadPhoto(blob, id) {
   const data = await res.json();
   if (!data.id) throw { message: '写真アップロード失敗', status: res.status };
 
-  await gapi.client.drive.permissions.create({
-    fileId:   data.id,
-    resource: { role: 'reader', type: 'anyone' },
-  });
+  // appDataFolderは非公開なのでpermissions設定不要
   return data.id;
 }
 
+/* ─ fileIdから写真BlobURLを取得（キャッシュ付き）─ */
 export async function loadPhotoBlob(fileId) {
   if (STATE.photoBlobCache[fileId]) return STATE.photoBlobCache[fileId];
 

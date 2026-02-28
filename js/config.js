@@ -4,9 +4,8 @@
 
 export const CONFIG = {
   CLIENT_ID:        '258493345784-tecrt34v0mqpq8rkmoajjhgi9lpvmfp5.apps.googleusercontent.com',
-  SCOPE:            'https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/drive.readonly',
+  SCOPE:            'https://www.googleapis.com/auth/drive.appdata',  // ← App Folderに変更
   DATA_FILENAME:    'memory_map_data.json',
-  PHOTOS_FOLDER:    'MemoryMapPhotos',
   TOKEN_REFRESH_MS: 55 * 60 * 1000,
   PHOTO_MAX_PX:     900,
   PHOTO_QUALITY:    0.75,
@@ -23,7 +22,6 @@ export const STATE = {
   tempMarker:     null,
   tempPhotoBlob:  null,
   dataFileId:     null,
-  photosFolderId: null,
   memories:       [],
   photoBlobCache: {},
 };
