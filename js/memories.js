@@ -60,8 +60,8 @@ export async function saveMarker(map) {
   if (!STATE.accessToken || !STATE.tempMarker) return;
 
   const comment = document.getElementById('commentInput').value;
-  if (comment.length > 144) {
-    showToast('コメントは144文字以内で入力してください', 'error');
+  if (comment.length > 72) {
+    showToast('コメントは72文字以内で入力してください', 'error');
     return;
   }
 
@@ -114,8 +114,8 @@ export async function editMemory(id) {
     return;
   }
 
-  if (commentEl.value.length > 144) {
-    showToast('コメントは144文字以内で入力してください', 'error');
+  if (commentEl.value.length > 72) {
+    showToast('コメントは72文字以内で入力してください', 'error');
     return;
   }
 
