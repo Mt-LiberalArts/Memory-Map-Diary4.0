@@ -26,15 +26,28 @@ export async function loadDataFile() {
       { headers: { Authorization: 'Bearer ' + STATE.accessToken } }
     );
     if (!resp.ok) throw { status: resp.status, message: 'データ読み込み失敗' };
-    STATE.memories = await resp.json();
+
+    const parsed = await resp.json();
+    if (!Array.isArray(parsed)) {
+      console.error('データ破損を検知：空配列で起動します', parsed);
+      STATE.memories = [];
+      throw { status: 422, message: 'データが破損しています。サポートにご連絡ください' };
+    }
+    STATE.memories = parsed;
   } else {
     STATE.memories = [];
   }
 }
 
-/* ─ JSONデータファイルを保存 or 更新 ─ */
-export async function saveDataFile() {
-  const json = JSON.stringify(STATE.memories);
+/* ─ JSONデータファイルを保存 or 更新 ─
+   引数 memories を受け取る（STATE依存を排除）
+   保存前に配列チェック：壊れたデータの書き込みを防ぐ
+── */
+export async function saveDataFile(memories) {
+  if (!Array.isArray(memories)) {
+    throw { message: 'データ構造が不正です。保存を中断しました' };
+  }
+  const json = JSON.stringify(memories);
 
   if (!STATE.dataFileId) {
     // 新規作成：appDataFolder に保存

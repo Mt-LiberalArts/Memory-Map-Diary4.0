@@ -14,32 +14,65 @@ export function initMemories(renderMarkersFn) {
   _renderMarkers = renderMarkersFn;
 }
 
+/* ─ データ層：トランザクション風addMemory ─
+   順序：写真アップ → メモリオブジェクト作成 → 配列追加 → JSON保存 → STATE確定
+   失敗時はSTATEをバックアップから復元（ロールバック）
+── */
+async function addMemory({ lat, lng, date, comment, blob }) {
+  const backup = [...STATE.memories];
+
+  try {
+    // ① 写真アップロード（先にfileId取得）
+    const id = crypto.randomUUID();
+    let photoFileId = '';
+    if (blob) {
+      photoFileId = await uploadPhoto(blob, id);
+    }
+
+    // ② 一時オブジェクト作成（まだSTATEに入れない）
+    const memory = {
+      id,
+      lat,
+      lng,
+      date,
+      comment,
+      photoFileId,
+      createdAt:   new Date().toISOString(),
+    };
+
+    // ③ 新配列を作ってsaveDataFileに渡す（STATE未確定）
+    const newMemories = [...STATE.memories, memory];
+    await saveDataFile(newMemories);
+
+    // ④ 保存成功後にSTATEを確定
+    STATE.memories = newMemories;
+
+  } catch (e) {
+    // 失敗時ロールバック
+    console.error('addMemory失敗、ロールバック:', e);
+    STATE.memories = backup;
+    throw e;
+  }
+}
+
+/* ─ UI層：saveMarker（DOM・ローディング担当）─ */
 export async function saveMarker(map) {
   if (!STATE.accessToken || !STATE.tempMarker) return;
   setLoading(true, '保存中...');
   try {
     await loadDataFile();
 
-    const id = String(Date.now());
-    let photoFileId = null;
+    if (STATE.tempPhotoBlob) setLoading(true, '写真をアップロード中...');
 
-    if (STATE.tempPhotoBlob) {
-      setLoading(true, '写真をアップロード中...');
-      photoFileId = await uploadPhoto(STATE.tempPhotoBlob, id);
-    }
-
-    STATE.memories.push({
-      id,
-      lat:         STATE.tempMarker.getLatLng().lat,
-      lng:         STATE.tempMarker.getLatLng().lng,
-      date:        document.getElementById('dateInput').value,
-      comment:     document.getElementById('commentInput').value,
-      photoFileId: photoFileId || '',
-      createdAt:   new Date().toISOString(),
+    await addMemory({
+      lat:     STATE.tempMarker.getLatLng().lat,
+      lng:     STATE.tempMarker.getLatLng().lng,
+      date:    document.getElementById('dateInput').value,
+      comment: document.getElementById('commentInput').value,
+      blob:    STATE.tempPhotoBlob,
     });
 
     setLoading(true, 'データを保存中...');
-    await saveDataFile();
     closeSheet(map);
     _renderMarkers();
     showToast('思い出を保存しました ✓', 'info', 2000);
@@ -82,7 +115,7 @@ export async function editMemory(id) {
     STATE.memories[idx].comment = commentEl.value ?? '';
     STATE.memories[idx].date    = dateEl.value    ?? '';
 
-    await saveDataFile();
+    await saveDataFile(STATE.memories);
     _renderMarkers();
     showToast('変更を保存しました ✓', 'info', 2000);
   } catch (e) {
@@ -103,6 +136,12 @@ export async function deleteMemory(id) {
 
     const mem = STATE.memories[idx];
 
+    // ① JSON保存を先に確定（写真削除より優先）
+    const newMemories = STATE.memories.filter(m => m.id !== id);
+    await saveDataFile(newMemories);
+    STATE.memories = newMemories;
+
+    // ② JSON保存成功後に写真削除（失敗しても記録は消えている）
     if (mem.photoFileId) {
       try {
         await gapi.client.drive.files.delete({ fileId: mem.photoFileId });
@@ -111,12 +150,10 @@ export async function deleteMemory(id) {
           delete STATE.photoBlobCache[mem.photoFileId];
         }
       } catch (e) {
-        console.warn('写真削除失敗（JSON削除は続行）:', e);
+        console.warn('写真削除失敗（記録は正常に削除済み）:', e);
       }
     }
 
-    STATE.memories.splice(idx, 1);
-    await saveDataFile();
     _renderMarkers();
     showToast('削除しました', 'info', 2000);
   } catch (e) {
