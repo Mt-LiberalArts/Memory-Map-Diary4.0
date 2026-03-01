@@ -96,7 +96,7 @@ export function renderMarkers() {
     };
 
     const cached = m.photoFileId ? STATE.photoBlobCache[m.photoFileId] : null;
-    marker.bindPopup(buildHtml(cached), { maxWidth: 280, autoPanPadding: [20, 80] });
+    marker.bindPopup(buildHtml(cached), { maxWidth: 280 });
 
     marker.on('popupopen', async () => {
       // 写真を非同期ロード → setContent直後に最新DOMへイベント登録
