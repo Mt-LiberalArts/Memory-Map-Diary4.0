@@ -20,7 +20,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   noWrap:      true,
 }).addTo(map);
 
-export const markerLayer = L.layerGroup().addTo(map);
+export const markerLayer = L.markerClusterGroup().addTo(map);
 
 /* ─ 現在地へ移動 ─ */
 if (navigator.geolocation) {
@@ -79,8 +79,8 @@ export function renderMarkers() {
         html += `
           <div class="popup-edit-form">
             <div>
-              <div class="popup-edit-label">コメント</div>
-              <textarea id="edit-comment-${m.id}">${escapeHtml(m.comment || '')}</textarea>
+              <div class="popup-edit-label">コメント <span id="edit-count-${m.id}" style="float:right;font-size:0.75rem;color:#888">${(m.comment||'').length}/144</span></div>
+              <textarea id="edit-comment-${m.id}" maxlength="144" oninput="document.getElementById('edit-count-${m.id}').textContent=this.value.length+'/144'">${escapeHtml(m.comment || '')}</textarea>
             </div>
             <div>
               <div class="popup-edit-label">日付</div>
