@@ -63,3 +63,34 @@ window.addEventListener('offline', () => {
 window.addEventListener('online', () => {
   showToast('接続が回復しました ✓', 'info', 2000);
 });
+
+/* ─ 写真拡大モーダル ─ */
+export function openPhotoModal(src) {
+  const modal   = document.getElementById('photoModal');
+  const img     = document.getElementById('photoModalImg');
+  const saveBtn = document.getElementById('photoModalSave');
+  const closeBtn = document.getElementById('photoModalClose');
+  const overlay = document.getElementById('photoModalOverlay');
+
+  img.src = src;
+  modal.classList.add('open');
+
+  const onSave = () => {
+    const a = document.createElement('a');
+    a.href     = src;
+    a.download = 'memory_' + Date.now() + '.jpg';
+    a.click();
+  };
+
+  const close = () => {
+    modal.classList.remove('open');
+    img.src = '';
+    saveBtn.removeEventListener('click', onSave);
+    closeBtn.removeEventListener('click', close);
+    overlay.removeEventListener('click', close);
+  };
+
+  saveBtn.addEventListener('click', onSave);
+  closeBtn.addEventListener('click', close);
+  overlay.addEventListener('click', close);
+}

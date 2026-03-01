@@ -63,6 +63,21 @@ function resizeToBlob(imgElement, maxPx, quality) {
   });
 }
 
+/* ─ 写真プレビューをリセット ─ */
+export function resetPhotoPreview() {
+  const preview = document.getElementById('photoPreview');
+  preview.src            = '';
+  preview.style.display  = 'none';
+
+  const picker = document.getElementById('photoPicker');
+  picker.style.display   = '';
+  picker.className       = 'photo-picker';
+
+  document.getElementById('pickerText').textContent = 'タップして選択';
+  document.getElementById('photoInput').value       = '';
+  STATE.tempPhotoBlob = null;
+}
+
 export function initPhotoInput() {
   document.getElementById('photoInput').addEventListener('change', async e => {
     const file = e.target.files[0];

@@ -212,6 +212,7 @@ body {
 }
 .form-input {
   width: 100%;
+  box-sizing: border-box;
   padding: 14px 16px;
   background: white;
   border: 1.5px solid var(--warm);
