@@ -64,33 +64,55 @@ window.addEventListener('online', () => {
   showToast('接続が回復しました ✓', 'info', 2000);
 });
 
-/* ─ 写真拡大モーダル ─ */
-export function openPhotoModal(src) {
-  const modal   = document.getElementById('photoModal');
-  const img     = document.getElementById('photoModalImg');
-  const saveBtn = document.getElementById('photoModalSave');
-  const closeBtn = document.getElementById('photoModalClose');
-  const overlay = document.getElementById('photoModalOverlay');
+/* ─ 思い出詳細モーダル ─ */
+export function openMemoryModal({ memory, imgUrl, mode, onEdit, onDelete }) {
+  const modal        = document.getElementById('memoryModal');
+  const overlay      = document.getElementById('memoryModalOverlay');
+  const closeBtn     = document.getElementById('memoryModalClose');
+  const img          = document.getElementById('memoryModalImg');
+  const comment      = document.getElementById('memoryModalComment');
+  const date         = document.getElementById('memoryModalDate');
+  const editArea     = document.getElementById('memoryModalEdit');
+  const commentInput = document.getElementById('memoryModalCommentInput');
+  const dateInput    = document.getElementById('memoryModalDateInput');
+  const saveBtn      = document.getElementById('memoryModalSaveBtn');
+  const deleteBtn    = document.getElementById('memoryModalDeleteBtn');
 
-  img.src = src;
+  // 写真
+  if (imgUrl) {
+    img.src = imgUrl;
+    img.style.display = 'block';
+  } else {
+    img.src = '';
+    img.style.display = 'none';
+  }
+
+  // 閲覧表示
+  comment.textContent = memory.comment || '';
+  date.textContent    = memory.date    || '';
+
+  // 編集モード
+  if (mode === 'delete') {
+    commentInput.value = memory.comment || '';
+    dateInput.value    = memory.date    || '';
+    editArea.classList.add('visible');
+  } else {
+    editArea.classList.remove('visible');
+  }
+
   modal.classList.add('open');
-
-  const onSave = () => {
-    const a = document.createElement('a');
-    a.href     = src;
-    a.download = 'memory_' + Date.now() + '.jpg';
-    a.click();
-  };
 
   const close = () => {
     modal.classList.remove('open');
     img.src = '';
-    saveBtn.removeEventListener('click', onSave);
+    saveBtn.onclick   = null;
+    deleteBtn.onclick = null;
     closeBtn.removeEventListener('click', close);
     overlay.removeEventListener('click', close);
   };
 
-  saveBtn.addEventListener('click', onSave);
+  saveBtn.onclick   = () => { close(); onEdit?.(); };
+  deleteBtn.onclick = () => { close(); onDelete?.(); };
   closeBtn.addEventListener('click', close);
   overlay.addEventListener('click', close);
 }

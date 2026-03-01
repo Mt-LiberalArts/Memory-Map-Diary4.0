@@ -129,3 +129,8 @@ export async function loadPhotoBlob(fileId) {
     return null;
   }
 }
+
+/* ─ 写真ファイルを削除 ─ */
+export async function deletePhoto(fileId) {
+  await gapi.client.drive.files.delete({ fileId });
+}

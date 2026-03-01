@@ -5,7 +5,7 @@
 ═══════════════════════════════════════════ */
 import { STATE } from './config.js';
 import { setLoading, showToast, handleDriveError } from './ui.js';
-import { loadDataFile, saveDataFile, uploadPhoto } from './drive.js';
+import { loadDataFile, saveDataFile, uploadPhoto, deletePhoto } from './drive.js';
 import { closeSheet } from './sheet.js';
 
 /* ─ renderMarkers のコールバック（map.jsから注入）─ */
@@ -106,11 +106,11 @@ export async function loadMemories() {
 }
 
 export async function editMemory(id) {
-  const commentEl = document.getElementById(`edit-comment-${id}`);
-  const dateEl    = document.getElementById(`edit-date-${id}`);
+  const commentEl = document.getElementById('memoryModalCommentInput');
+  const dateEl    = document.getElementById('memoryModalDateInput');
 
   if (!commentEl || !dateEl) {
-    showToast('フォームの取得に失敗しました。マーカーを開き直してください', 'error');
+    showToast('フォームの取得に失敗しました', 'error');
     return;
   }
 
@@ -156,7 +156,7 @@ export async function deleteMemory(id) {
     // ② JSON保存成功後に写真削除（失敗しても記録は消えている）
     if (mem.photoFileId) {
       try {
-        await gapi.client.drive.files.delete({ fileId: mem.photoFileId });
+        await deletePhoto(mem.photoFileId);
         if (STATE.photoBlobCache[mem.photoFileId]) {
           URL.revokeObjectURL(STATE.photoBlobCache[mem.photoFileId]);
           delete STATE.photoBlobCache[mem.photoFileId];

@@ -98,13 +98,25 @@
 <!-- アプリ本体 -->
 <script type="module" src="js/main.js"></script>
 
-<!-- 写真拡大モーダル -->
-<div class="photo-modal" id="photoModal">
-  <div class="photo-modal-overlay" id="photoModalOverlay"></div>
-  <div class="photo-modal-content">
-    <button class="photo-modal-close" id="photoModalClose">✕</button>
-    <img class="photo-modal-img" id="photoModalImg" src="" alt="">
-    <button class="photo-modal-save" id="photoModalSave">💾 保存</button>
+<!-- 思い出詳細モーダル -->
+<div class="memory-modal" id="memoryModal">
+  <div class="memory-modal-overlay" id="memoryModalOverlay"></div>
+  <div class="memory-modal-content">
+    <button class="memory-modal-close" id="memoryModalClose">✕</button>
+    <img class="memory-modal-img" id="memoryModalImg" src="" alt="">
+    <div class="memory-modal-body">
+      <div class="memory-modal-comment" id="memoryModalComment"></div>
+      <div class="memory-modal-date" id="memoryModalDate"></div>
+    </div>
+    <!-- 編集モード時のみ表示 -->
+    <div class="memory-modal-edit" id="memoryModalEdit">
+      <div class="memory-modal-edit-label">コメント</div>
+      <textarea class="memory-modal-textarea" id="memoryModalCommentInput"></textarea>
+      <div class="memory-modal-edit-label">日付</div>
+      <input type="date" class="memory-modal-date-input" id="memoryModalDateInput" />
+      <button class="memory-modal-save-btn" id="memoryModalSaveBtn">変更を保存</button>
+      <button class="memory-modal-delete-btn" id="memoryModalDeleteBtn">🗑 この思い出を削除</button>
+    </div>
   </div>
 </div>
 

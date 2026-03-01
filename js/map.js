@@ -2,7 +2,7 @@
    map.js — 地図初期化・マーカー描画・モード切り替え
 ═══════════════════════════════════════════ */
 import { CONFIG, STATE } from './config.js';
-import { showModeHint, openPhotoModal } from './ui.js';
+import { showModeHint, openMemoryModal } from './ui.js';
 import { openSheet, closeSheet } from './sheet.js';
 import { loadPhotoBlob } from './drive.js';
 
@@ -65,69 +65,19 @@ export function renderMarkers() {
   STATE.memories.forEach(m => {
     const marker = L.marker([m.lat, m.lng]).addTo(markerLayer);
 
-    const buildHtml = (imgSrc) => {
-      let html = `<div class="popup-wrap">`;
-      if (imgSrc) html += `<img class="popup-img" src="${imgSrc}">`;
+    marker.on('click', async () => {
+      const cached = m.photoFileId ? STATE.photoBlobCache[m.photoFileId] : null;
+      const imgUrl = cached ?? (m.photoFileId ? await loadPhotoBlob(m.photoFileId) : null);
 
-      html += `
-        <div class="popup-body">
-          <div class="popup-comment">${escapeHtml(m.comment || '')}</div>
-          <div class="popup-date">${escapeHtml(m.date || '')}</div>
-        </div>`;
-
-      if (STATE.currentMode === 'delete') {
-        html += `
-          <div class="popup-edit-form">
-            <div>
-              <div class="popup-edit-label">コメント</div>
-              <textarea id="edit-comment-${m.id}">${escapeHtml(m.comment || '')}</textarea>
-            </div>
-            <div>
-              <div class="popup-edit-label">日付</div>
-              <input type="date" id="edit-date-${m.id}" value="${escapeHtml(m.date || '')}" />
-            </div>
-          </div>
-          <button class="popup-save"   data-edit="${m.id}">変更を保存</button>
-          <button class="popup-delete" data-delete="${m.id}">🗑 この思い出を削除</button>`;
-      }
-
-      html += `</div>`;
-      return html;
-    };
-
-    const cached = m.photoFileId ? STATE.photoBlobCache[m.photoFileId] : null;
-    marker.bindPopup(buildHtml(cached), { maxWidth: 200 });
-
-    marker.on('popupopen', async () => {
-      // 写真を非同期ロード → setContent直後に最新DOMへイベント登録
-      if (m.photoFileId) {
-        const url = await loadPhotoBlob(m.photoFileId);
-        if (url) marker.getPopup().setContent(buildHtml(url));
-      }
-
-      const popupEl = marker.getPopup().getElement();
-
-      popupEl?.querySelector('[data-edit]')?.addEventListener('click', e => {
-        _editMemory(e.currentTarget.dataset.edit);
-      });
-      popupEl?.querySelector('[data-delete]')?.addEventListener('click', e => {
-        _deleteMemory(e.currentTarget.dataset.delete);
-      });
-      popupEl?.querySelector('.popup-img')?.addEventListener('click', e => {
-        openPhotoModal(e.currentTarget.src);
+      openMemoryModal({
+        memory: m,
+        imgUrl,
+        mode: STATE.currentMode,
+        onEdit:   () => _editMemory(m.id),
+        onDelete: () => _deleteMemory(m.id),
       });
     });
   });
-}
-
-/* ─ XSS対策：HTMLエスケープ ─ */
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
 }
 
 /* ─ 起動時ヒント ─ */

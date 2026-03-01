@@ -268,31 +268,127 @@ textarea.form-input { resize: none; height: 100px; line-height: 1.6; }
   font-size: 15px; cursor: pointer; margin-top: 4px;
 }
 
-/* ── ポップアップ（思い出表示） ── */
-.leaflet-popup-content-wrapper {
-  border-radius: var(--radius) !important;
-  box-shadow: 0 8px 32px var(--shadow) !important;
-  padding: 0 !important; overflow: hidden;
-  background: var(--bg) !important;
+/* ── 思い出詳細モーダル ── */
+.memory-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  align-items: flex-end;
+  justify-content: center;
 }
-.leaflet-popup-content { margin: 0 !important; width: auto !important; }
-.leaflet-popup-tip     { background: var(--bg) !important; }
+.memory-modal.open { display: flex; }
 
-.popup-wrap    { min-width: 140px; max-width: 190px; overflow: hidden; }
-.popup-img     { width: 100%; height: 90px; object-fit: cover; display: block; cursor: pointer; }
-.popup-body    { padding: 6px 8px; }
-.popup-comment { font-size: 11px; color: var(--ink); line-height: 1.4; margin-bottom: 2px; }
-.popup-date    { font-size: 9px; color: #aaa; font-weight: 700; }
-.popup-delete  {
-  display: block;
-  width: calc(100% - 16px); margin: 0 8px 8px;
-  padding: 6px;
-  background: #fff0ee; color: var(--accent);
-  border: 1.5px solid #ffd5cc; border-radius: 8px;
-  font-family: 'Zen Maru Gothic', sans-serif;
-  font-size: 11px; font-weight: 700;
-  cursor: pointer; text-align: center;
+.memory-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
 }
+.memory-modal-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-height: 92dvh;
+  background: var(--bg);
+  border-radius: 28px 28px 0 0;
+  overflow-y: auto;
+  padding-bottom: env(safe-area-inset-bottom, 20px);
+}
+.memory-modal-close {
+  position: absolute;
+  top: 14px; right: 14px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,0.12);
+  color: var(--ink);
+  font-size: 14px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2;
+}
+.memory-modal-img {
+  width: 100%;
+  max-height: 55dvh;
+  object-fit: cover;
+  border-radius: 28px 28px 0 0;
+  display: block;
+}
+.memory-modal-body {
+  padding: 16px 20px 8px;
+}
+.memory-modal-comment {
+  font-size: 16px;
+  color: var(--ink);
+  line-height: 1.6;
+  margin-bottom: 8px;
+  white-space: pre-wrap;
+}
+.memory-modal-date {
+  font-size: 12px;
+  color: #aaa;
+  font-weight: 700;
+}
+.memory-modal-edit {
+  display: none;
+  padding: 0 20px 20px;
+  flex-direction: column;
+  gap: 8px;
+}
+.memory-modal-edit.visible { display: flex; }
+.memory-modal-edit-label {
+  font-size: 11px; font-weight: 700;
+  color: #aaa; letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+.memory-modal-textarea {
+  width: 100%; box-sizing: border-box;
+  padding: 12px 14px;
+  background: white;
+  border: 1.5px solid var(--warm);
+  border-radius: 14px;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 15px; color: var(--ink);
+  resize: none; height: 90px; line-height: 1.6;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.memory-modal-textarea:focus { border-color: var(--blue); }
+.memory-modal-date-input {
+  width: 100%; box-sizing: border-box;
+  padding: 12px 14px;
+  background: white;
+  border: 1.5px solid var(--warm);
+  border-radius: 14px;
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 15px; color: var(--ink);
+  outline: none;
+  appearance: none; -webkit-appearance: none;
+  transition: border-color 0.2s;
+}
+.memory-modal-date-input:focus { border-color: var(--blue); }
+.memory-modal-save-btn {
+  width: 100%; padding: 14px;
+  background: var(--blue); color: white;
+  border: none; border-radius: var(--radius);
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 15px; font-weight: 700;
+  cursor: pointer; margin-top: 4px;
+  transition: transform 0.15s;
+}
+.memory-modal-save-btn:active { transform: scale(0.98); }
+.memory-modal-delete-btn {
+  width: 100%; padding: 14px;
+  background: #fff0ee; color: var(--accent);
+  border: 1.5px solid #ffd5cc; border-radius: var(--radius);
+  font-family: 'Zen Maru Gothic', sans-serif;
+  font-size: 15px; font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.memory-modal-delete-btn:active { transform: scale(0.98); }
 
 /* ── ローディングオーバーレイ ── */
 .loading-overlay {
@@ -338,120 +434,3 @@ textarea.form-input { resize: none; height: 100px; line-height: 1.6; }
 /* ── Leaflet上書き ── */
 .leaflet-control-zoom   { display: none !important; }
 .leaflet-marker-icon    { filter: drop-shadow(0 3px 6px rgba(0,0,0,0.25)); }
-
-/* ── 編集フォーム（ポップアップ内） ── */
-.popup-edit-form {
-  padding: 6px 8px 2px;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-.popup-edit-form textarea,
-.popup-edit-form input[type="date"] {
-  width: 100%;
-  min-width: 0;
-  max-width: 100%;
-  padding: 5px 7px;
-  background: white;
-  border: 1.5px solid var(--warm);
-  border-radius: 7px;
-  font-family: 'Zen Maru Gothic', sans-serif;
-  font-size: 11px;
-  color: var(--ink);
-  outline: none;
-  transition: border-color 0.2s;
-  box-sizing: border-box;
-  appearance: none;
-  -webkit-appearance: none;
-}
-.popup-edit-form textarea:focus,
-.popup-edit-form input[type="date"]:focus { border-color: var(--blue); }
-.popup-edit-form textarea { resize: none; height: 50px; line-height: 1.4; }
-
-.popup-edit-label {
-  font-size: 9px;
-  font-weight: 700;
-  color: #aaa;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  margin-bottom: 1px;
-}
-.popup-save {
-  display: block;
-  width: calc(100% - 16px); margin: 0 8px 6px;
-  padding: 6px;
-  background: var(--blue); color: white;
-  border: none; border-radius: 8px;
-  font-family: 'Zen Maru Gothic', sans-serif;
-  font-size: 11px; font-weight: 700;
-  cursor: pointer; text-align: center;
-  transition: transform 0.15s;
-}
-.popup-save:active { transform: scale(0.97); }
-
-/* ── 写真拡大モーダル ── */
-.photo-modal {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  align-items: center;
-  justify-content: center;
-}
-.photo-modal.open {
-  display: flex;
-}
-.photo-modal-overlay {
-  position: absolute;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.88);
-}
-.photo-modal-content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  padding: 16px;
-  max-width: 95vw;
-  max-height: 95vh;
-}
-.photo-modal-img {
-  max-width: 90vw;
-  max-height: 75vh;
-  object-fit: contain;
-  border-radius: 10px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-}
-.photo-modal-close {
-  position: absolute;
-  top: -8px;
-  right: -8px;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255,255,255,0.15);
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.photo-modal-close:hover { background: rgba(255,255,255,0.3); }
-.photo-modal-save {
-  background: #4a90e2;
-  color: #fff;
-  border: none;
-  border-radius: 24px;
-  padding: 12px 32px;
-  font-size: 15px;
-  font-weight: 700;
-  cursor: pointer;
-  letter-spacing: 0.05em;
-  box-shadow: 0 4px 12px rgba(74,144,226,0.4);
-  transition: transform 0.15s, background 0.15s;
-}
-.photo-modal-save:active { transform: scale(0.96); background: #357abd; }
