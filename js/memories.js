@@ -56,14 +56,21 @@ async function addMemory({ lat, lng, date, comment, blob }) {
 }
 
 /* ─ UI層：saveMarker（DOM・ローディング担当）─ */
+let _isSaving = false;  // ← 多重送信防止フラグ
+
 export async function saveMarker(map) {
   if (!STATE.accessToken || !STATE.tempMarker) return;
+  if (_isSaving) return;  // ← 連打ガード
 
   const comment = document.getElementById('commentInput').value;
   if (comment.length > 72) {
     showToast('コメントは72文字以内で入力してください', 'error');
     return;
   }
+
+  _isSaving = true;
+  const saveBtn = document.querySelector('.btn-save');
+  if (saveBtn) saveBtn.disabled = true;
 
   setLoading(true, '保存中...');
   try {
@@ -88,6 +95,8 @@ export async function saveMarker(map) {
     handleDriveError(e);
   } finally {
     setLoading(false);
+    _isSaving = false;
+    if (saveBtn) saveBtn.disabled = false;
   }
 }
 
@@ -124,10 +133,18 @@ export async function editMemory(id) {
     const idx = STATE.memories.findIndex(m => m.id === id);
     if (idx === -1) return;
 
-    STATE.memories[idx].comment = commentEl.value ?? '';
-    STATE.memories[idx].date    = dateEl.value    ?? '';
+    // ① 新配列を作ってSTATEには入れずにsave（addMemoryと同様の設計）
+    const newMemories = STATE.memories.map(m =>
+      m.id === id
+        ? { ...m, comment: commentEl.value ?? '', date: dateEl.value ?? '' }
+        : m
+    );
 
-    await saveDataFile(STATE.memories);
+    await saveDataFile(newMemories);
+
+    // ② 保存成功後にSTATEを確定
+    STATE.memories = newMemories;
+
     _renderMarkers();
     showToast('変更を保存しました ✓', 'info', 2000);
   } catch (e) {
