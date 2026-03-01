@@ -20,7 +20,7 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   noWrap:      true,
 }).addTo(map);
 
-export const markerLayer = L.layerGroup().addTo(map);
+export const markerLayer = L.markerClusterGroup().addTo(map);
 
 /* ─ 現在地へ移動 ─ */
 if (navigator.geolocation) {

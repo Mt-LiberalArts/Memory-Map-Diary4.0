@@ -58,6 +58,13 @@ async function addMemory({ lat, lng, date, comment, blob }) {
 /* ─ UI層：saveMarker（DOM・ローディング担当）─ */
 export async function saveMarker(map) {
   if (!STATE.accessToken || !STATE.tempMarker) return;
+
+  const comment = document.getElementById('commentInput').value;
+  if (comment.length > 144) {
+    showToast('コメントは144文字以内で入力してください', 'error');
+    return;
+  }
+
   setLoading(true, '保存中...');
   try {
     await loadDataFile();
@@ -68,7 +75,7 @@ export async function saveMarker(map) {
       lat:     STATE.tempMarker.getLatLng().lat,
       lng:     STATE.tempMarker.getLatLng().lng,
       date:    document.getElementById('dateInput').value,
-      comment: document.getElementById('commentInput').value,
+      comment,
       blob:    STATE.tempPhotoBlob,
     });
 
@@ -104,6 +111,11 @@ export async function editMemory(id) {
 
   if (!commentEl || !dateEl) {
     showToast('フォームの取得に失敗しました。マーカーを開き直してください', 'error');
+    return;
+  }
+
+  if (commentEl.value.length > 144) {
+    showToast('コメントは144文字以内で入力してください', 'error');
     return;
   }
 
