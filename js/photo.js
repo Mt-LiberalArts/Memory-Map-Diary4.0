@@ -42,7 +42,7 @@ function getExifDate(buffer) {
       offset += 2 + segLen;
     }
   } catch (e) {
-    console.warn('EXIF読み取り失敗:', e);
+    console.warn('Failed to read EXIF:', e);
   }
   return null;
 }
@@ -73,7 +73,7 @@ export function resetPhotoPreview() {
   picker.style.display   = '';
   picker.className       = 'photo-picker';
 
-  document.getElementById('pickerText').textContent = 'タップして選択';
+  document.getElementById('pickerText').textContent = 'Tap to select';
   document.getElementById('photoInput').value       = '';
   STATE.tempPhotoBlob = null;
 }
@@ -105,12 +105,12 @@ export function initPhotoInput() {
 
       document.getElementById('photoPicker').style.display = 'none';
       document.getElementById('photoPicker').className     = 'photo-picker has-photo';
-      document.getElementById('pickerText').textContent    = '写真を変更';
+      document.getElementById('pickerText').textContent    = 'Change photo';
     };
 
     img.onerror = () => {
       URL.revokeObjectURL(tempUrl);
-      showToast('画像の読み込みに失敗しました', 'error');
+      showToast('Failed to load image', 'error');
     };
 
     img.src = tempUrl;

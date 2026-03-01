@@ -24,7 +24,7 @@ export function showToast(message, type = 'info', duration = 3000) {
   }
 }
 
-export function setLoading(on, text = '処理中...') {
+export function setLoading(on, text = 'Processing...') {
   document.getElementById('loadingText').textContent = text;
   document.getElementById('loadingOverlay').classList.toggle('visible', on);
 }
@@ -38,7 +38,7 @@ export function showModeHint(mode) {
 
 export function updateLoginUI(loggedIn) {
   const status = document.getElementById('loginStatus');
-  status.textContent = loggedIn ? 'ログイン済み ✓' : '未ログイン';
+  status.textContent = loggedIn ? 'Signed in ✓' : 'Not signed in';
   status.className = 'login-status' + (loggedIn ? ' logged-in' : '');
   document.getElementById('loginBtn').style.display  = loggedIn ? 'none'  : 'block';
   document.getElementById('logoutBtn').style.display = loggedIn ? 'block' : 'none';
@@ -49,19 +49,19 @@ export function handleDriveError(e) {
   if (status === 401) {
     STATE.accessToken = null;
     updateLoginUI(false);
-    showToast('セッションが切れました。タップして再ログイン', 'relogin', 0);
+    showToast('Session expired. Tap to sign in again', 'relogin', 0);
   } else if (status === 404) {
-    showToast('ファイルが見つかりません（Driveで削除された可能性があります）', 'error');
+    showToast('File not found (may have been deleted from Drive)', 'error');
   } else {
-    showToast('エラーが発生しました: ' + (e?.message || status), 'error');
+    showToast('An error occurred: ' + (e?.message || status), 'error');
   }
 }
 
 window.addEventListener('offline', () => {
-  showToast('オフラインです。接続を確認してください', 'error', 5000);
+  showToast('You are offline. Please check your connection.', 'error', 5000);
 });
 window.addEventListener('online', () => {
-  showToast('接続が回復しました ✓', 'info', 2000);
+  showToast('Connection restored ✓', 'info', 2000);
 });
 
 /* ─ 思い出詳細モーダル ─ */

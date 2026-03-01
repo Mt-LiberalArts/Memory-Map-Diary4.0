@@ -27,7 +27,7 @@ export const STATE = {
 };
 
 export const MODE_HINTS = {
-  add:    '地図をタップして思い出を追加',
-  view:   'マーカーをタップして表示',
-  delete: 'マーカーをタップして編集・削除',
+  add:    'Tap the map to add a memory',
+  view:   'Tap a marker to view',
+  delete: 'Tap a marker to edit or delete',
 };

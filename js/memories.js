@@ -49,7 +49,7 @@ async function addMemory({ lat, lng, date, comment, blob }) {
 
   } catch (e) {
     // 失敗時ロールバック
-    console.error('addMemory失敗、ロールバック:', e);
+    console.error('addMemory failed, rolling back:', e);
     STATE.memories = backup;
     throw e;
   }
@@ -64,7 +64,7 @@ export async function saveMarker(map) {
 
   const comment = document.getElementById('commentInput').value;
   if (comment.length > 72) {
-    showToast('コメントは72文字以内で入力してください', 'error');
+    showToast('Comment must be 72 characters or less', 'error');
     return;
   }
 
@@ -72,11 +72,11 @@ export async function saveMarker(map) {
   const saveBtn = document.querySelector('.btn-save');
   if (saveBtn) saveBtn.disabled = true;
 
-  setLoading(true, '保存中...');
+  setLoading(true, 'Saving...');
   try {
     await loadDataFile();
 
-    if (STATE.tempPhotoBlob) setLoading(true, '写真をアップロード中...');
+    if (STATE.tempPhotoBlob) setLoading(true, 'Uploading photo...');
 
     await addMemory({
       lat:     STATE.tempMarker.getLatLng().lat,
@@ -86,10 +86,10 @@ export async function saveMarker(map) {
       blob:    STATE.tempPhotoBlob,
     });
 
-    setLoading(true, 'データを保存中...');
+    setLoading(true, 'Saving data...');
     closeSheet(map);
     _renderMarkers();
-    showToast('思い出を保存しました ✓', 'info', 2000);
+    showToast('Memory saved ✓', 'info', 2000);
   } catch (e) {
     console.error(e);
     handleDriveError(e);
@@ -102,7 +102,7 @@ export async function saveMarker(map) {
 
 export async function loadMemories() {
   if (!STATE.accessToken) return;
-  setLoading(true, '読み込み中...');
+  setLoading(true, 'Loading...');
   try {
     await loadDataFile();
     _renderMarkers();
@@ -119,16 +119,16 @@ export async function editMemory(id) {
   const dateEl    = document.getElementById('memoryModalDateInput');
 
   if (!commentEl || !dateEl) {
-    showToast('フォームの取得に失敗しました', 'error');
+    showToast('Failed to get form', 'error');
     return;
   }
 
   if (commentEl.value.length > 72) {
-    showToast('コメントは72文字以内で入力してください', 'error');
+    showToast('Comment must be 72 characters or less', 'error');
     return;
   }
 
-  setLoading(true, '保存中...');
+  setLoading(true, 'Saving...');
   try {
     const idx = STATE.memories.findIndex(m => m.id === id);
     if (idx === -1) return;
@@ -146,7 +146,7 @@ export async function editMemory(id) {
     STATE.memories = newMemories;
 
     _renderMarkers();
-    showToast('変更を保存しました ✓', 'info', 2000);
+    showToast('Changes saved ✓', 'info', 2000);
   } catch (e) {
     console.error(e);
     handleDriveError(e);
@@ -156,9 +156,9 @@ export async function editMemory(id) {
 }
 
 export async function deleteMemory(id) {
-  if (!confirm('この思い出を削除しますか？')) return;
+  if (!confirm('Delete this memory?')) return;
 
-  setLoading(true, '削除中...');
+  setLoading(true, 'Deleting...');
   try {
     const idx = STATE.memories.findIndex(m => m.id === id);
     if (idx === -1) return;
@@ -179,12 +179,12 @@ export async function deleteMemory(id) {
           delete STATE.photoBlobCache[mem.photoFileId];
         }
       } catch (e) {
-        console.warn('写真削除失敗（記録は正常に削除済み）:', e);
+        console.warn('Photo deletion failed (memory record already deleted):', e);
       }
     }
 
     _renderMarkers();
-    showToast('削除しました', 'info', 2000);
+    showToast('Memory deleted', 'info', 2000);
   } catch (e) {
     console.error(e);
     handleDriveError(e);

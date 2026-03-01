@@ -25,13 +25,13 @@ export async function loadDataFile() {
       `https://www.googleapis.com/drive/v3/files/${STATE.dataFileId}?alt=media`,
       { headers: { Authorization: 'Bearer ' + STATE.accessToken } }
     );
-    if (!resp.ok) throw { status: resp.status, message: 'データ読み込み失敗' };
+    if (!resp.ok) throw { status: resp.status, message: 'Failed to load data' };
 
     const parsed = await resp.json();
     if (!Array.isArray(parsed)) {
-      console.error('データ破損を検知：空配列で起動します', parsed);
+      console.error('Data corruption detected: starting with empty array', parsed);
       STATE.memories = [];
-      throw { status: 422, message: 'データが破損しています。サポートにご連絡ください' };
+      throw { status: 422, message: 'Data is corrupted. Please contact support.' };
     }
     STATE.memories = parsed;
   } else {
@@ -45,7 +45,7 @@ export async function loadDataFile() {
 ── */
 export async function saveDataFile(memories) {
   if (!Array.isArray(memories)) {
-    throw { message: 'データ構造が不正です。保存を中断しました' };
+    throw { message: 'Invalid data structure. Save aborted.' };
   }
   const json = JSON.stringify(memories);
 
@@ -65,7 +65,7 @@ export async function saveDataFile(memories) {
       { method: 'POST', headers: { Authorization: 'Bearer ' + STATE.accessToken }, body: form }
     );
     const data = await res.json();
-    if (!data.id) throw { message: 'ファイル作成失敗', status: res.status };
+    if (!data.id) throw { message: 'Failed to create file', status: res.status };
     STATE.dataFileId = data.id;
 
   } else {
@@ -81,7 +81,7 @@ export async function saveDataFile(memories) {
         body: json,
       }
     );
-    if (!res.ok) throw { status: res.status, message: '保存失敗' };
+    if (!res.ok) throw { status: res.status, message: 'Save failed' };
   }
 }
 
@@ -103,7 +103,7 @@ export async function uploadPhoto(blob, id) {
     { method: 'POST', headers: { Authorization: 'Bearer ' + STATE.accessToken }, body: form }
   );
   const data = await res.json();
-  if (!data.id) throw { message: '写真アップロード失敗', status: res.status };
+  if (!data.id) throw { message: 'Photo upload failed', status: res.status };
 
   // appDataFolderは非公開なのでpermissions設定不要
   return data.id;
@@ -125,7 +125,7 @@ export async function loadPhotoBlob(fileId) {
     STATE.photoBlobCache[fileId] = url;
     return url;
   } catch (e) {
-    console.warn('写真取得失敗:', fileId, e);
+    console.warn('Failed to load photo:', fileId, e);
     return null;
   }
 }
